@@ -7,7 +7,7 @@ import {
 
 const COLORS = ['#d94f49', '#278566', '#d29b2d', '#4b65bd'];
 const COLOR_NAMES = ['Coral', 'Jade', 'Amber', 'Indigo'];
-const STARTS = [0, 39, 26, 13];
+const STARTS = [0, 13, 26, 39];
 const SAFE = [0, 8, 13, 21, 26, 34, 39, 47];
 const THEMES = {
   Garden: { bg: '#eff4ec', panel: '#fffefa', board: '#fcfbf5', accent: '#477254', line: '#dde5d8', tile: '#ffffff', ink: '#202a22', muted: '#707b70', gold: '#e5c878' },
@@ -16,21 +16,21 @@ const THEMES = {
   Midnight: { bg: '#171e2b', panel: '#222b3b', board: '#202a39', accent: '#e3bd68', line: '#354154', tile: '#2a3546', ink: '#f2f0e8', muted: '#a6afba', gold: '#d9b859' },
 };
 const TRACK = [
-  [6,1],[6,2],[6,3],[6,4],[6,5],[5,6],[4,6],[3,6],[2,6],[1,6],[0,6],[0,7],[0,8],
-  [1,8],[2,8],[3,8],[4,8],[5,8],[6,9],[6,10],[6,11],[6,12],[6,13],[6,14],[7,14],[8,14],
-  [8,13],[8,12],[8,11],[8,10],[8,9],[9,8],[10,8],[11,8],[12,8],[13,8],[14,8],[14,7],[14,6],
-  [13,6],[12,6],[11,6],[10,6],[9,6],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0],[7,0],[6,0],
+  [1,6],[2,6],[3,6],[4,6],[5,6],[6,5],[6,4],[6,3],[6,2],[6,1],[6,0],[7,0],[8,0],
+  [8,1],[8,2],[8,3],[8,4],[8,5],[9,6],[10,6],[11,6],[12,6],[13,6],[14,6],[14,7],[14,8],
+  [13,8],[12,8],[11,8],[10,8],[9,8],[8,9],[8,10],[8,11],[8,12],[8,13],[8,14],[7,14],[6,14],
+  [6,13],[6,12],[6,11],[6,10],[6,9],[5,8],[4,8],[3,8],[2,8],[1,8],[0,8],[0,7],[0,6],
 ];
 const HOME_LANES = [
+  [[1,7],[2,7],[3,7],[4,7],[5,7],[6,7]],
   [[7,1],[7,2],[7,3],[7,4],[7,5],[7,6]],
   [[13,7],[12,7],[11,7],[10,7],[9,7],[8,7]],
   [[7,13],[7,12],[7,11],[7,10],[7,9],[7,8]],
-  [[1,7],[2,7],[3,7],[4,7],[5,7],[6,7]],
 ];
 const BASES = [[0,0],[9,0],[9,9],[0,9]];
 const YARDS = [[1,1],[10,1],[10,10],[1,10]];
 const YARD_SPOTS = [[2,2],[4,2],[2,4],[4,4]];
-const CENTER_SPOTS = [[7,6],[8,7],[7,8],[6,7]];
+const CENTER_SPOTS = [[6,7],[7,6],[8,7],[7,8]];
 const initial = (count = 4) => ({ players: Array.from({length: count}, (_, i) => ({ name: `Player ${i + 1}`, color: i, connected: true })), tokens: Array.from({length: count}, () => [-1,-1,-1,-1]), turn: 0, dice: null, rolled: false, winner: null, log: 'Roll a six to bring a token out!' });
 const absolute = (player, pos) => (STARTS[player] + pos) % 52;
 function legalMoves(game) {
@@ -97,7 +97,7 @@ function Board({ game, onToken }) {
     </g>})}
     {HOME_LANES.map((lane,p)=>lane.map((cell,i)=>{const [x,y]=[cell[0]*40,cell[1]*40];return <rect key={`lane-${p}-${i}`} x={x+1.5} y={y+1.5} width="37" height="37" rx="5" fill={COLORS[p]} opacity=".83" stroke="var(--board)" strokeWidth="1.5"/>}))}
     <rect x="240" y="240" width="120" height="120" rx="5" fill="url(#centerShine)" stroke="var(--line)" strokeWidth="2"/>
-    <path d="M240 240 L360 240 L300 300 Z" fill={COLORS[0]}/><path d="M360 240 L360 360 L300 300 Z" fill={COLORS[1]}/><path d="M360 360 L240 360 L300 300 Z" fill={COLORS[2]}/><path d="M240 360 L240 240 L300 300 Z" fill={COLORS[3]}/>
+    <path d="M240 240 L240 360 L300 300 Z" fill={COLORS[0]}/><path d="M240 240 L360 240 L300 300 Z" fill={COLORS[1]}/><path d="M360 240 L360 360 L300 300 Z" fill={COLORS[2]}/><path d="M240 360 L360 360 L300 300 Z" fill={COLORS[3]}/>
     {moves.map(({player,token,cx,cy,clickable,name})=><g key={`${player}-${token}`} className={clickable?'piece piece-ready':'piece'} role={clickable?'button':undefined} tabIndex={clickable?0:undefined} aria-label={clickable?`Move ${name} token ${token+1}`:undefined} onClick={clickable?()=>onToken(token):undefined} onKeyDown={clickable?e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onToken(token)}}:undefined}>
       {clickable&&<circle className="piece-hit" cx={cx} cy={cy} r="34"/>}
       <circle cx={cx} cy={cy} r="13" fill={COLORS[player]} stroke="white" strokeWidth="3" filter="url(#tokenShadow)"/>
@@ -114,7 +114,7 @@ function DiceFace({value}) {
 function App() {
   const [theme,setTheme]=useState(()=>{try{return localStorage.getItem('ludo-theme')||'Garden'}catch{return 'Garden'}});
   const [game,setGame]=useState(()=>initial()),[playersCount,setPlayersCount]=useState(4);
-  const [musicOn,setMusicOn]=useState(false),[sfxOn,setSfxOn]=useState(true),[online,setOnline]=useState(false);
+  const [musicOn,setMusicOn]=useState(false),[sfxOn,setSfxOn]=useState(true),[online,setOnline]=useState(false),[playMode,setPlayMode]=useState('offline');
   const [room,setRoom]=useState(''),[name,setName]=useState(''),[roomInput,setRoomInput]=useState(''),[status,setStatus]=useState('Pass and play'),[copied,setCopied]=useState(false),[toolsOpen,setToolsOpen]=useState(false),[toast,setToast]=useState('');
   const socket=useRef(null),audio=useRef(null),toastTimer=useRef(null);
   const isLocal=typeof window!=='undefined'&&['localhost','127.0.0.1'].includes(window.location.hostname);
@@ -147,18 +147,20 @@ function App() {
   };
   const move=token=>{if(online){socket.current?.emit('move',{token});return}setGame(current=>legalMoves(current).includes(token)?applyMove(current,token):current)};
   const connect=create=>{
-    if(!onlineAvailable){announce('Online rooms are not set up yet. You can still play locally.');return}
+    if(!onlineAvailable){setPlayMode('online');announce('Online play needs the multiplayer server URL. Offline pass-and-play is ready.');return}
     if(socket.current)socket.current.disconnect();
+    setPlayMode('online');
     const s=io(serverUrl,{transports:['websocket','polling'],timeout:8000});socket.current=s;setStatus('Connecting…');
     s.on('connect',()=>create?s.emit('room:create',{name,players:playersCount}):s.emit('room:join',{room:roomInput.trim().toUpperCase(),name}));
     s.on('room:state',payload=>{setGame(payload.game);setRoom(payload.room);setOnline(true);setStatus(`Room ${payload.room}`);window.history.replaceState({},'',`/room/${payload.room}`)});
     s.on('room:error',message=>{setStatus(String(message));announce(String(message))});
     s.on('connect_error',()=>{setStatus('Server unavailable');announce('Could not reach the game server. Try again in a moment.')});
   };
-  const disconnect=()=>{socket.current?.disconnect();socket.current=null;setOnline(false);setRoom('');setStatus('Pass and play');window.history.replaceState({},'','/')};
-  const newGame=()=>{if(online){announce('Leave the room to start a local game.');return}setGame(initial(playersCount));announce('A fresh board is ready!')};
+  const disconnect=()=>{socket.current?.disconnect();socket.current=null;setOnline(false);setRoom('');setPlayMode('offline');setStatus('Pass and play');setGame(initial(playersCount));window.history.replaceState({},'','/')};
+  const chooseMode=mode=>{if(mode==='offline'&&online)disconnect();else{setPlayMode(mode);if(mode==='offline'){setStatus('Pass and play');setGame(initial(playersCount))}}};
+  const newGame=()=>{if(online){announce('Leave the room to start a local game.');return}setPlayMode('offline');setStatus('Pass and play');setGame(initial(playersCount));announce('A fresh board is ready!')};
   const copy=async()=>{try{await navigator.clipboard.writeText(`${window.location.origin}/room/${room}`);setCopied(true);announce('Invite link copied');window.setTimeout(()=>setCopied(false),1600)}catch{announce('Copy was unavailable. Share room code '+room)}};
-  const canRoll=online?game.turn===game.myTurn&&!game.rolled:!game.rolled;
+  const canRoll=playMode==='online'?online&&game.turn===game.myTurn&&!game.rolled:!game.rolled;
   return <main className="app-shell">
     <header className="topbar">
       <a className="brand" href="/" aria-label="Ludo Buddy home"><span className="brand-mark">L</span><span className="brand-copy">ludo<span>buddy</span><small>PLAY TOGETHER</small></span></a>
@@ -189,7 +191,8 @@ function App() {
       </aside>
       <section className="game-column" aria-label="Ludo game">
         <div className="game-card">
-          <div className="game-heading"><div><span className="section-kicker">THE BOARD IS YOURS</span><h2>{game.winner!==null?'A lovely win.':`${game.players[game.turn]?.name||'Player'}’s turn`}</h2></div><span className={`mode-badge ${online?'online-badge':''}`}><i/>{online?'PRIVATE ROOM':'PASS & PLAY'}</span></div>
+          <div className="game-heading"><div><span className="section-kicker">THE BOARD IS YOURS</span><h2>{game.winner!==null?'A lovely win.':`${game.players[game.turn]?.name||'Player'}’s turn`}</h2></div><span className={`mode-badge ${online?'online-badge':''}`}><i/>{online?'PRIVATE ROOM':playMode==='online'?'ONLINE SETUP':'OFFLINE'}</span></div>
+          <div className="mode-switch" role="group" aria-label="Choose how to play"><button type="button" className={playMode==='offline'?'selected':''} aria-pressed={playMode==='offline'} onClick={()=>chooseMode('offline')}><Users size={15}/><span>Offline with friends</span><small>Pass and play</small></button><button type="button" className={playMode==='online'?'selected':''} aria-pressed={playMode==='online'} onClick={()=>chooseMode('online')}><Link2 size={15}/><span>Online with friends</span><small>Private room</small></button></div>
           <div className="mobile-player-strip" aria-label="Players">{game.players.map((player,index)=><span key={index} className={game.turn===index?'strip-player active':'strip-player'} style={{'--player':COLORS[index]}}><i/>{player.name}</span>)}</div>
           <div className="board-frame"><Board game={game} onToken={move}/><div className="board-ribbon"><span className="ribbon-dot" style={{'--player':COLORS[game.turn]}}/>{game.winner!==null?`${game.players[game.winner]?.name} won the game`:game.players[game.turn]?.name||'Player'}{game.winner===null?' is up':''}</div></div>
           <div className="roll-row"><div className="game-message" role="status" aria-live="polite">{game.winner!==null?'🎉 ':''}{game.log}</div><button type="button" className={`roll-button ${game.rolled?'has-rolled':''}`} onClick={roll} disabled={!canRoll||game.winner!==null} aria-label={game.rolled?`You rolled ${game.dice}. Choose a highlighted token`:'Roll the dice'}><DiceFace value={game.dice}/><span>{game.rolled?'CHOOSE TOKEN':'ROLL DICE'}</span></button></div>
